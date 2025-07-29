@@ -1,0 +1,1 @@
+from .fetchs import FetchsMethodsClass

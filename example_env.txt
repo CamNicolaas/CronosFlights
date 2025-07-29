@@ -1,0 +1,14 @@
+# ---------- Configs DataBase ----------
+    # --- MongoDB ---
+DB_MONGO = ""
+
+    # --- Postgres ---
+DB_POSTGRES = ""
+
+POSTGRES_USER = 
+POSTGRES_PASSWORD = 
+POSTGRES_DB = 
+
+# ---------- Configs Kafka ----------
+    # --- Kafka ---
+KAFKA_HOST = ""

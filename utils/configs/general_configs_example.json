@@ -1,0 +1,130 @@
+{
+    "monitor_configs": {
+        "admin_configs": {
+            "webhooks": {
+                "status_monitors": null,
+                "filtered": ""
+            }
+        },
+        "flights":{
+            "deals_configs":{
+                "min_real_price": 1.05,
+                "extreme_threshold": 1.5,
+                "extreme_percentage_off": 40,
+                "extreme_min_percentage_off": 20,
+                "deal_q1_discount": 0.85,
+                "no_iqr_discount": 0.85,
+                "deal_min_percentage_off": 15
+            },
+            "aerolineas_argentinas":{
+                "name": "AerolineasARG",
+                "link": "https://www.aerolineas.com.ar/",
+                "imagen": "https://th.bing.com/th/id/R.b2b134df6f599de7fd916005c7fef478?rik=CWRJ%2b7g1p5XcnA&pid=ImgRaw&r=0&sres=1&sresct=1",
+
+                "delay": 10,
+                "delay_error": 10,
+                "tokens_max_error": 10,
+                "max_threads_consumer": 100,
+
+                "max_threads_monitor_month": 250,
+                "max_month_scraping": 12,
+
+                "airports_scraping": {
+                    "Buenos Aires": ["AEP", "EZE"],
+                    "Mar del Plata": ["MDQ"],
+                    "Bahia Blanca": ["BHI"],
+                    "Catamarca": ["CTC"],
+                    "Resistencia": ["RES"],
+                    "Comodoro Rivadavia": ["CRD"],
+                    "Esquel": ["EQS"],
+                    "Trelew": ["REL"],
+                    "Córdoba": ["COR", "RCU"],
+                    "Corrientes": ["CNQ"],
+                    "Formosa": ["FMA"],
+                    "Jujuy": ["JUJ"],
+                    "Santa Rosa": ["RSA"],
+                    "Mendoza": ["AFA", "MDZ", "IRJ"],
+                    "La Rioja": ["IRJ"],
+                    "Iguazú": ["IGR"],
+                    "Posadas": ["PSS"],
+                    "Neuquén": ["CPC", "NQN"],
+                    "Bariloche": ["BRC"],
+                    "Viedma": ["VDM"],
+                    "Salta": ["SLA"],
+                    "San Juan": ["UAQ"],
+                    "El Calafate": ["FTE"],
+                    "Río Gallegos": ["RGL"],
+                    "Rosario": ["ROS"],
+                    "Santa Fe": ["SFN", "RCQ"],
+                    "Río Hondo": ["RHD"],
+                    "Santiago del Estero": ["SDE"],
+                    "Río Grande": ["RGA"],
+                    "Ushuaia": ["USH"],
+                    "Tucumán": ["TUC"],
+                    "Paraná": ["PRA"],
+                    "San Luis": ["LUQ", "RLO"],
+                    "Puerto Madryn": ["PMY"],
+                    "Merlo": ["RLO"]
+                },
+                "kafka_topics": {
+                    "producer_to_etl": {
+                        "name": "flights.aerolineasArg.raw.calendar",
+                        "group_id": "flights-consumer-group",
+                        "max_workers": 300,
+                        "partitions": 3,
+                        "replication_factor": 3
+                    },
+                    "etl_to_notifier": {
+                        "name": "flights.aerolineasArg.to_notify",
+                        "group_id": "flights-consumer-group",
+                        "max_workers": 300,
+                        "partitions": 3,
+                        "replication_factor": 3
+                    }
+                },
+                "discord_webhooks": {
+                    "AEP": null,
+                    "EZE": null,
+                    "BHI": null,
+                    "MDQ": null,
+                    "CTC": null,
+                    "RES": null,
+                    "CRD": null,
+                    "EQS": null,
+                    "REL": null,
+                    "COR": null,
+                    "RCU": null,
+                    "CNQ": null,
+                    "FMA": null,
+                    "JUJ": null,
+                    "RSA": null,
+                    "AFA": null,
+                    "MDZ": null,
+                    "IRJ": null,
+                    "IGR": null,
+                    "PSS": null,
+                    "CPC": null,
+                    "NQN": null,
+                    "BRC": null,
+                    "VDM": null,
+                    "SLA": null,
+                    "UAQ": null,
+                    "FTE": null,
+                    "RGL": null,
+                    "ROS": null,
+                    "SFN": null,
+                    "RCQ": null,
+                    "RHD": null,
+                    "SDE": null,
+                    "RGA": null,
+                    "USH": null,
+                    "TUC": null,
+                    "PRA": null,
+                    "LUQ": null,
+                    "RLO": null,
+                    "PMY": null
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+# ---- Folders ----
+bin/
+lib/
+__pycache__/
+CronosFlights/
+utils/logs/aerolineasARG/FlightsManagers
+utils/logs/aerolineasARG/Notifys
+utils/logs/aerolineasARG/TokensManager
+utils/logs/aerolineasARG/Tools
+
+# ---- Files ----
+pyvenv.cfg
+*.env
+*.log
+utils/configs/general_configs.json
+utils/fetchsmethods/fetchs.py
