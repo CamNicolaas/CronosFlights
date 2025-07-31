@@ -87,7 +87,8 @@ class DBFlightsNewFlightError(DBFlightsError):
     gen_message = "Error Adding New Flight To Database..."
 class DBFlightsUpdateFlightError(DBFlightsError):
     gen_message = "Error Updating Flight To Database..."
-
+class ExportTableFlightError(DBFlightsError):
+    gen_message = "Error Cannot Export Table..."
 
 # ---------- Kafka Exceptions ----------
 class KafkaManagerError(CronosFlightsExceptions):
@@ -127,4 +128,16 @@ class CheckerDealsLowestMonthError(DealsAnalyzerManager):
 # ---------- Notifys Exceptions ----------
 class NotifyFlightsError(CronosFlightsExceptions):
     gen_message = "General Error Related To NotifyFlights..."
+
+
+# ---------- Exporter Flights Data Exceptions ----------
+class ExporterFlightsDataError(CronosFlightsExceptions):
+    gen_message = "General Error Related To ExporterFlightsData..."
+
+class RepositoryNotFoundError(DealsAnalyzerManager):
+    gen_message = "Error Repository Could Not Be Found...."
+class UploadToGithubError(DealsAnalyzerManager):
+    gen_message = "Error Occurred While Trying Upload To GitHub...."
+class SaveDataToParquetError(DealsAnalyzerManager):
+    gen_message = "Error Occurred While Converting Dataframe To Parquet And Trying To Save...."
 

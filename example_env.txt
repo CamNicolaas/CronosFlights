@@ -12,3 +12,6 @@ POSTGRES_DB =
 # ---------- Configs Kafka ----------
     # --- Kafka ---
 KAFKA_HOST = ""
+
+# ---------- Github Access ----------
+GITHUB_ACCESS = ""

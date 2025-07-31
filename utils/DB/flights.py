@@ -13,10 +13,10 @@ from utils.exceptions import (
     DBFlightsFindNotifysError,
     DBFlightsMarkNotifysError,
     DBFlightCheckerError,
+    ExportTableFlightError,
 
     GenerateIQRError,
     ReturnIQRError,
-    ReturnMinMonthlyError,
     ReturnMinDailyError
 )
 
@@ -528,156 +528,7 @@ class AsyncFlightDBManager(metaclass = SingletonClass):
                 }
             )
 
-
-    # --- Min Price Monthly ---
-    async def get_min_price_monthly(self,
-        iata_origin:str,
-        iata_destination:str,
-        departure_date:Union[str, date, datetime],
-        seat_class:Optional[str] = None,
-        provider:Optional[str] = None,
-        airline:Optional[str] = None,
-        return_full:bool = False
-    ) -> Union[int, Dict, None]:
-
-        try:
-            departure_date = type(self).parse_departure_date(
-                departure_date, 
-                return_type = "date"
-            )
-            month_start = departure_date.replace(day = 1)
-            month_end = (
-                month_start.replace(month = 1, year = month_start.year + 1)
-                if month_start.month == 12
-                else month_start.replace(month = month_start.month + 1)
-            )
-            conditions = [
-                "iata_origin = $1",
-                "iata_destination = $2",
-                "available = TRUE",
-                "time_departure >= $3",
-                "time_departure < $4"
-            ]
-            values = [
-                iata_origin.upper(),
-                iata_destination.upper(),
-                month_start,
-                month_end
-            ]
-
-            for optional_field, column in [
-                (seat_class, "class"),
-                (provider, "provider"),
-                (airline, "airline")
-            ]:
-                if optional_field:
-                    values.append(optional_field)
-                    conditions.append(f"{column} = ${len(values)}")
-
-            query = f"""
-                SELECT {'*' if return_full else 'MIN(price) AS min_price'}
-                FROM flights_calendar
-                WHERE {' AND '.join(conditions)}
-            """
-            if return_full:
-                query += " ORDER BY price ASC LIMIT 1"
-
-            async with self.pool.acquire() as conn:
-                row = await conn.fetchrow(query, *values)
-                if not row:
-                    return None
-                return dict(row) if return_full else int(row['min_price']) if row['min_price'] is not None else None
-
-        except asyncpg.PostgresError as err:
-            raise ReturnMinMonthlyError(
-                context = {
-                    "error_type": type(err).__name__,
-                    "error_msg": str(err)
-                }
-            )
-        except Exception as err:
-            raise ReturnMinMonthlyError(
-                f'{self._message} Unknown Error Occurred While Trying to Get Monthly Min Price...',
-                context = {
-                    "error_type": type(err).__name__,
-                    "error_msg": str(err)
-                }
-            )
-
-    # --- Min Price Daily ---
-    async def get_min_price_date(self,
-        iata_origin:str,
-        iata_destination:str,
-        departure_date:Union[str, date, datetime],
-        seat_class:Optional[str] = None,
-        provider:Optional[str] = None,
-        airline:Optional[str] = None,
-        exclude_airlines:Optional[List[str]] = None,
-        return_full:bool = False
-    ) -> Union[int, Dict, None]:
-        
-        try:
-            departure_day = self.parse_departure_date(
-                departure_date, 
-                return_type = "date"
-            )
-            conditions = [
-                "iata_origin = $1",
-                "iata_destination = $2",
-                "time_departure >= $3",
-                "time_departure <= $4",
-                "available = TRUE",
-                "price IS NOT NULL"
-            ]
-            values = [
-                iata_origin.upper(),
-                iata_destination.upper(),
-                datetime.combine(departure_day, datetime.min.time()),
-                datetime.combine(departure_day, datetime.max.time())
-            ]
-
-            for optional_field, column_name in [
-                (seat_class, "class"),
-                (provider, "provider"),
-                (airline, "airline")
-            ]:
-                if optional_field:
-                    values.append(optional_field)
-                    conditions.append(f"{column_name} = ${len(values)}")
-
-            if exclude_airlines:
-                placeholders = list()
-                for airline_name in exclude_airlines:
-                    values.append(airline_name)
-                    placeholders.append(f"${len(values)}")
-                conditions.append(f"airline NOT IN ({', '.join(placeholders)})")
-
-            query = f"""
-                SELECT {'*' if return_full else 'MIN(price) AS min_price'}
-                FROM flights_calendar
-                WHERE {' AND '.join(conditions)}
-            """
-            if return_full:
-                query += " ORDER BY price ASC LIMIT 1"
-
-            async with self.pool.acquire() as conn:
-                row = await conn.fetchrow(query, *values)
-                if not row:
-                    return None
-                return dict(row) if return_full else int(row["min_price"]) if row["min_price"] is not None else None
-
-        except Exception as err:
-            raise ReturnMinDailyError(
-                f'{self._message} Error getting min price for date...',
-                context = {
-                    "error_type": type(err).__name__,
-                    "error_msg": str(err)
-                }
-            )
-
-
-
-
+    # --- Get Min Price Month or Day ---
     async def get_min_price(self,
         iata_origin:str,
         iata_destination:str,
@@ -756,6 +607,57 @@ class AsyncFlightDBManager(metaclass = SingletonClass):
         except Exception as err:
             raise ReturnMinDailyError(
                 f"{self._message} Error getting min price...",
+                context = {
+                    "error_type": type(err).__name__,
+                    "error_msg": str(err)
+                }
+            )
+
+
+# ---------- Export Data ----------
+    async def export_table_data(self,
+        table_name:str,
+        filters:Optional[Dict[str, Any]] = None,
+        limit:Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        
+        try:
+            QUERY_MAP = {
+                "flights_calendar": "SELECT * FROM flights_calendar",
+                "flight_sections": (
+                    "SELECT fs.* FROM flight_sections fs "
+                    "JOIN flights_calendar fc ON fs.flight_hash = fc.hash_id"
+                ),
+                "price_history_calendar": "SELECT * FROM price_history_calendar",
+                "airports": "SELECT * FROM airports",
+                "price_stats": "SELECT * FROM price_stats"
+            }
+            if table_name not in QUERY_MAP:
+                raise ValueError(f'Error, Table: "{table_name}" Not Supported...')
+
+            base_query = QUERY_MAP[table_name]
+            query_args = list()
+            where_filters = list()
+
+            if filters:
+                for idx, (column, value) in enumerate(filters.items(), start = 1):
+                    where_filters.append(f'{column} = ${idx}')
+                    query_args.append(value)
+
+            if where_filters:
+                clause = " AND ".join(where_filters)
+                base_query += f" WHERE {clause}" if "WHERE" not in base_query.upper() else f" AND {clause}"
+
+            if limit:
+                base_query += f" LIMIT {limit}"
+
+            async with self.pool.acquire() as conn:
+                rows = await conn.fetch(base_query, *query_args)
+                return [dict(row) for row in rows]
+
+        except Exception as err:
+            raise ExportTableFlightError(
+                f'{self._message} Unexpected Error Occurred While Processing Table Export: "{table_name}"...',
                 context = {
                     "error_type": type(err).__name__,
                     "error_msg": str(err)

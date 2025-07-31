@@ -14,3 +14,4 @@ pyvenv.cfg
 *.log
 utils/configs/general_configs.json
 utils/fetchsmethods/fetchs.py
+FlightsData/AerolineasARG/price_history_calendar.parquet
