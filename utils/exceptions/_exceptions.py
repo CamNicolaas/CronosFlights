@@ -134,10 +134,18 @@ class NotifyFlightsError(CronosFlightsExceptions):
 class ExporterFlightsDataError(CronosFlightsExceptions):
     gen_message = "General Error Related To ExporterFlightsData..."
 
-class RepositoryNotFoundError(DealsAnalyzerManager):
+class RepositoryNotFoundError(ExporterFlightsDataError):
     gen_message = "Error Repository Could Not Be Found...."
-class UploadToGithubError(DealsAnalyzerManager):
+class UploadToGithubError(ExporterFlightsDataError):
     gen_message = "Error Occurred While Trying Upload To GitHub...."
-class SaveDataToParquetError(DealsAnalyzerManager):
+class SaveDataToParquetError(ExporterFlightsDataError):
     gen_message = "Error Occurred While Converting Dataframe To Parquet And Trying To Save...."
 
+class CheckerS3ExistBucketError(ExporterFlightsDataError):
+    gen_message = "Error The Bucket Could Not Be Found..."
+class CheckerS3ExistFolderError(ExporterFlightsDataError):
+    gen_message = "Error Occurred While Trying To Search The Bucket..."
+class UploadFileToBucketError(ExporterFlightsDataError):
+    gen_message = "Error, File Could Not Be Uploaded Correctly To Bucket..."
+class UploadToAWSS3Error(ExporterFlightsDataError):
+    gen_message = "Error File Upload Process To S3 Instance Could Not Be Completed...."
